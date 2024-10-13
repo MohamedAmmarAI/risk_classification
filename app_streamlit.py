@@ -69,30 +69,33 @@ for col in ['Gender', 'Has a car', 'Has a property', 'Employment status',
             'Education level', 'Marital status', 'Dwelling', 'Has a work phone', 'Has an email']:
     input_data[col] = le.fit_transform(input_data[col])
 
-# Loading the trained RandomForest model and PCA
+# Load trained scaler, PCA, and RandomForest model
 best_rf_model = joblib.load('best_rf_model_compressed.joblib')
 pca = joblib.load('pca_compressed.joblib')
+scaler = joblib.load('scaler_compressed.joblib')  # Load pre-trained scaler instead of using fit_transform()
 
-# Scaling the input data
-scalar = StandardScaler()
-input_data_scaled = scalar.fit_transform(input_data)
+# Scaling the input data using pre-trained scaler
+input_data_scaled = scaler.transform(input_data)
 
 # Applying PCA to the input data
 input_data_pca = pca.transform(input_data_scaled)
 
-# Making a prediction
+# Making a prediction when 'Predict' button is clicked
 if st.button('Predict'):
-    prediction = best_rf_model.predict(input_data_pca)
-    prediction_proba = best_rf_model.predict_proba(input_data_pca)
+    try:
+        prediction = best_rf_model.predict(input_data_pca)
+        prediction_proba = best_rf_model.predict_proba(input_data_pca)
 
-    # Display the prediction result
-    if prediction[0] == 1:
-        st.write("The model predicts: **High Risk**")
-    else:
-        st.write("The model predicts: **Low Risk**")
+        # Display the prediction result
+        if prediction[0] == 1:
+            st.write("The model predicts: **High Risk**")
+        else:
+            st.write("The model predicts: **Low Risk**")
 
-    # Display prediction probabilities
-    st.write(f"Prediction Probability: Low Risk = {prediction_proba[0][0]:.2f}, High Risk = {prediction_proba[0][1]:.2f}")
+        # Display prediction probabilities
+        st.write(f"Prediction Probability: Low Risk = {prediction_proba[0][0]:.2f}, High Risk = {prediction_proba[0][1]:.2f}")
+    except Exception as e:
+        st.error(f"An error occurred during prediction: {e}")
 
 # Feature importance plot
 st.subheader('Feature Importances')
